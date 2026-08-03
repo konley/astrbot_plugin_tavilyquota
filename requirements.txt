@@ -1,0 +1,3 @@
+# Third-party dependencies for astrbot_plugin_tavilyquota.
+# One per line, with version constraint recommended: package>=1.0.0
+httpx
