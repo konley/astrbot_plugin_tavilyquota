@@ -38,13 +38,13 @@ _STATUS_HINTS = {
 
 
 def _mask_key(key: str) -> str:
-    """打码 Key：去掉公共前缀 tvly-dev- 后保留前 10 位与后 6 位，中间用 **** 代替。"""
+    """打码 Key：去掉公共前缀 tvly-dev- 后仅保留前 2 位与后 2 位，中间用 *** 代替。"""
     k = (key or "").strip()
     if k.startswith("tvly-dev-"):
         k = k[len("tvly-dev-") :]
-    if len(k) <= 10:
+    if len(k) <= 4:
         return "****"
-    return f"{k[:10]}****{k[-6:]}"
+    return f"{k[:2]}***{k[-2:]}"
 
 
 def _to_float(v) -> float | None:
@@ -115,7 +115,7 @@ class KeyQuota:
     "astrbot_plugin_tavilyquota",
     "konley",
     "Tavily 套餐额度查询：/tvquota 输出各 Key 打码额度，支持自动读取框架配置 Key 与手动填写两种模式",
-    version="0.1.1",
+    version="0.1.2",
     repo="https://github.com/konley/astrbot_plugin_tavilyquota",
 )
 class TavilyQuota(Star):

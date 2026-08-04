@@ -100,10 +100,11 @@ def test_mask_key():
     mod = importlib.import_module("main")
     k = "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"
     masked = mod._mask_key(k)
-    assert masked == "3OYJZe-zgL****LcDOur"
+    assert masked == "3O***ur"
     assert k not in masked
     assert "tvly-dev-" not in masked
-    assert mod._mask_key("short") == "****"
+    assert mod._mask_key("short") == "sh***rt"
+    assert mod._mask_key("ab") == "****"
 
 
 def test_remaining_pct():
