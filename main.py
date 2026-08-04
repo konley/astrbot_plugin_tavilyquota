@@ -38,11 +38,13 @@ _STATUS_HINTS = {
 
 
 def _mask_key(key: str) -> str:
-    """打码 Key：保留前 12 位与后 6 位，中间用 **** 代替。"""
+    """打码 Key：去掉公共前缀 tvly-dev- 后保留前 10 位与后 6 位，中间用 **** 代替。"""
     k = (key or "").strip()
-    if len(k) <= 18:
+    if k.startswith("tvly-dev-"):
+        k = k[len("tvly-dev-") :]
+    if len(k) <= 10:
         return "****"
-    return f"{k[:12]}****{k[-6:]}"
+    return f"{k[:10]}****{k[-6:]}"
 
 
 def _to_float(v) -> float | None:

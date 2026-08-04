@@ -100,8 +100,9 @@ def test_mask_key():
     mod = importlib.import_module("main")
     k = "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"
     masked = mod._mask_key(k)
-    assert masked == "tvly-dev-3OY****LcDOur"
+    assert masked == "3OYJZe-zgL****LcDOur"
     assert k not in masked
+    assert "tvly-dev-" not in masked
     assert mod._mask_key("short") == "****"
 
 
