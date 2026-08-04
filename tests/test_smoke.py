@@ -118,7 +118,11 @@ def test_light():
     _stub_astrbot_modules()
     mod = importlib.import_module("main")
     assert mod._light(100.0) == "🟢"
+    assert mod._light(99.0) == "🟢"
+    assert mod._light(60.0) == "🟢"
     assert mod._light(50.0) == "🟡"
+    assert mod._light(30.0) == "🟡"
+    assert mod._light(20.0) == "🔴"
     assert mod._light(10.0) == "🔴"
     assert mod._light(None) == "⚪"
 

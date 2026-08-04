@@ -60,7 +60,7 @@ def _light(remaining_pct: float | None) -> str:
         return "⚪"
     if remaining_pct <= 20:
         return "🔴"
-    if remaining_pct < 100:
+    if remaining_pct < 60:
         return "🟡"
     return "🟢"
 
@@ -113,7 +113,7 @@ class KeyQuota:
     "astrbot_plugin_tavilyquota",
     "konley",
     "Tavily 套餐额度查询：/tvquota 输出各 Key 打码额度，支持自动读取框架配置 Key 与手动填写两种模式",
-    version="0.1.0",
+    version="0.1.1",
     repo="https://github.com/konley/astrbot_plugin_tavilyquota",
 )
 class TavilyQuota(Star):
@@ -218,11 +218,14 @@ class TavilyQuota(Star):
         self, results: list[KeyQuota], auto_count: int, manual_count: int
     ) -> str:
         _ = (auto_count, manual_count)
-        lines = [f"📊 Tavily 套餐额度查询（{len(results)} 个 Key）"]
-
         if not results:
-            lines.append("未获取到任何 Key。")
-            return "\n".join(lines)
+            return "📊 Tavily 套餐额度查询\n未获取到任何 Key。"
+
+        ok_results = [r for r in results if r.ok]
+        # 所有 Key 套餐一致时合并进标题，行内不再重复
+        plans = {r.plan for r in ok_results if r.plan}
+        plan_suffix = f" · {next(iter(plans))}" if len(plans) == 1 else ""
+        lines = [f"📊 Tavily 套餐额度（{len(results)} 个 Key{plan_suffix}）"]
 
         for r in results:
             if not r.ok:
@@ -231,7 +234,12 @@ class TavilyQuota(Star):
             plan_pct = _remaining_pct(r.plan_usage, r.plan_limit)
             pct_str = f"（{plan_pct:.0f}%）" if plan_pct is not None else ""
             usage = f"{_fmt_credits(r.plan_usage)}/{_fmt_credits(r.plan_limit)}"
-            lines.append(f"{_light(plan_pct)} {r.masked}｜{r.plan} {usage}{pct_str}")
+            if len(plans) == 1:
+                lines.append(f"{_light(plan_pct)} {r.masked} {usage}{pct_str}")
+            else:
+                lines.append(
+                    f"{_light(plan_pct)} {r.masked}｜{r.plan} {usage}{pct_str}"
+                )
         return "\n".join(lines)
 
     # ---------------- 指令入口 ----------------
