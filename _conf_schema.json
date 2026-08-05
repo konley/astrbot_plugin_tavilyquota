@@ -1,25 +1,35 @@
 {
   "auto_mode": {
     "type": "bool",
-    "description": "自动模式：查询时自动读取 AstrBot 框架配置中的 Tavily Key（provider_settings → websearch_tavily_key），无需手动填写",
-    "hint": "开启后 /tvquota 会自动带上框架联网搜索配置的全部 Key。",
+    "description": "自动模式：读取框架配置中的活跃 Tavily Key",
+    "hint": "已改为「活跃 Key」模式：框架配置 websearch_tavily_key 中只放 1 个当前使用的 Key，本插件只查询它。",
     "default": true
-  },
-  "manual_mode": {
-    "type": "bool",
-    "description": "手动模式：额外查询 manual_keys 中手动填写的 Key",
-    "hint": "可与自动模式同时开启，两个来源会聚合去重后一次性展示。",
-    "default": false
-  },
-  "manual_keys": {
-    "type": "list",
-    "description": "手动填写的 Tavily API Key 列表",
-    "hint": "每个 Key 一行。展示时一律打码（保留头尾），不会输出明文。",
-    "default": []
   },
   "timeout": {
     "type": "int",
     "description": "请求 Tavily /usage 接口的超时时间（秒）",
     "default": 15
+  },
+  "auto_rotate": {
+    "type": "bool",
+    "description": "自动接力开关：活跃 Key 额度耗尽/失效时自动切换到备用池下一个 Key",
+    "hint": "默认关闭（怕切换过频繁发风控）。开启后按下面的检查间隔低频检查，只有「用完/失效」才切换。当前建议保持关闭，手动用 /tvrotate 控制。",
+    "default": false
+  },
+  "rotate_check_interval_hours": {
+    "type": "int",
+    "description": "自动检查间隔（小时）",
+    "hint": "开启 auto_rotate 后生效，默认 24 小时检查一次活跃 Key 额度（只查活跃 Key，低频不触发风控）。",
+    "default": 24
+  },
+  "rotation_pool": {
+    "type": "list",
+    "description": "备用 Tavily Key 池（不放进框架配置，平时零请求）",
+    "hint": "每个 Key 一行。切换时按顺序取下一个，被换下的 Key 放回队尾（额度按月刷新后自动复用）。注意：不要把池中 Key 同时填进框架配置，否则会变成多 Key 轮询。",
+    "default": [
+      "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",
+      "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",
+      "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"
+    ]
   }
 }

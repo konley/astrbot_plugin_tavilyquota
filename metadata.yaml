@@ -1,8 +1,8 @@
 name: astrbot_plugin_tavilyquota
 display_name: Tavily 套餐额度查询
-short_desc: Tavily 套餐额度查询：/tvquota
-desc: Tavily 套餐额度查询：/tvquota 输出各 Key 打码额度，支持自动读取框架配置 Key 与手动填写两种模式
-version: 0.1.2
+short_desc: Tavily 额度查询与 Key 接力：/tvquota /tvrotate
+desc: Tavily 额度查询与 Key 接力：/tvquota 查询当前活跃 Key 额度，/tvrotate 手动切换备用 Key，支持额度耗尽自动接力
+version: 0.2.0
 author: konley
 repo: https://github.com/konley/astrbot_plugin_tavilyquota
 support_platforms:

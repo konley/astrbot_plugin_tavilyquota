@@ -129,13 +129,7 @@ def test_light():
     assert mod._light(None) == "⚪"
 
 
-def test_dedup_keys():
+def test_dedup_keys_removed():
     _stub_astrbot_modules()
     mod = importlib.import_module("main")
-    auto = ["tvly-dev-AAA", "tvly-dev-BBB", "  tvly-dev-AAA  "]
-    manual = ["tvly-dev-BBB", "tvly-dev-CCC"]
-    assert mod._dedup_keys(auto, manual) == [
-        "tvly-dev-AAA",
-        "tvly-dev-BBB",
-        "tvly-dev-CCC",
-    ]
+    assert not hasattr(mod, "_dedup_keys")

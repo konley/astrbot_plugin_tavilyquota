@@ -1,44 +1,49 @@
 # astrbot_plugin_tavilyquota
 
-查询 Tavily 联网搜索额度（套餐限额与用量）的 AstrBot 插件。触发指令 `/tvquota`（别名 `/tvq` / `/tavilyquota`），一键输出每个 Key 的打码额度与信号灯状态。
+Tavily 联网搜索额度查询与 Key 接力管理插件。触发指令 `/tvquota`（别名 `/tvq` / `/tavilyquota`）与 `/tvrotate`。
 
 ## 功能
 
-- 每个 Key 一行展示：信号灯（🟢充足 / 🟡偏紧 / 🔴告急）+ 套餐名 + 已用/上限 credits + 剩余百分比
-- 附带 Search 用量、PayGo 用量等明细（接口有返回时显示）
-- Key 一律打码（保留头尾，中间 `****`），不会输出明文
+- `/tvquota`：查询**当前活跃 Key**（框架配置 `provider_settings → websearch_tavily_key` 中的唯一 Key）的套餐额度、信号灯状态，并展示备用池数量与上次切换时间
+- `/tvrotate`：手动切换到备用池下一个 Key（无条件）
+- 可选 `auto_rotate`：活跃 Key 额度耗尽/失效时自动接力（默认关闭）
 
-## Key 来源（两种模式互不干扰）
+## 设计原则（防风控）
 
-| 模式 | 说明 | 默认 |
-|------|------|------|
-| `auto_mode` | 自动读取 AstrBot 框架配置 `provider_settings → websearch_tavily_key`（即 WebUI「联网搜索」里配置的 Key），无需手动填写 | 开 |
-| `manual_mode` | 手动在插件配置 `manual_keys` 中填写想额外查询的 Key | 关 |
+Tavily 对「同一 IP 多账号高频轮询」风控严格（曾导致整批账号被停用）。本插件因此采用：
 
-两种模式可独立开关，也可同时开启：查询时会聚合两个来源的 Key 并按首次出现顺序去重，一次性展示。
+1. **框架配置永远只放 1 个活跃 Key**——所有消费方（框架内置联网搜索、isittrue 等）只打这一个账号，不会多 Key 轮询
+2. **备用池存插件 KV**，平时零请求，不暴露给框架
+3. **额度检查低频**：定时检查默认 24 小时一次（`rotate_check_interval_hours`），且只查活跃 Key 一个账号
+4. **用完才切**：只有「额度耗尽（plan_usage ≥ plan_limit）/ Key 失效 / 账户停用」才切换，绝不提前预切
+5. 被换下的 Key 放回池尾循环——额度每月自动刷新后自然复用，无需人工管理
 
-## Install
+## 命令
 
-In AstrBot WebUI → Plugin market → install from `https://github.com/konley/astrbot_plugin_tavilyquota`.
+- `/tvquota`（别名 `/tvq` `/tavilyquota`）— 查询活跃 Key 额度 + 池状态 + 上次切换时间
+- `/tvrotate` — 手动切换到池中下一个 Key
 
-## Commands
+## 配置
 
-- `/tvquota`（别名 `/tvq` `/tavilyquota`）— 查询全部可用 Key 的额度
+| 配置项 | 类型 | 说明 | 默认 |
+|--------|------|------|------|
+| `auto_mode` | bool | 自动读取框架配置的活跃 Key | true |
+| `auto_rotate` | bool | 额度耗尽自动接力开关 | false |
+| `rotate_check_interval_hours` | int | 自动检查间隔（小时） | 24 |
+| `rotation_pool` | list | 备用 Key 池（每个一行） | [] |
+| `timeout` | int | 请求超时（秒） | 15 |
 
-## Config
+## 使用流程
 
-| 配置项 | 类型 | 说明 |
-|--------|------|------|
-| `auto_mode` | bool | 自动模式开关，默认开启 |
-| `manual_mode` | bool | 手动模式开关，默认关闭 |
-| `manual_keys` | list | 手动填写的 Key 列表，每个一行 |
-| `timeout` | int | 请求 Tavily `/usage` 接口超时（秒），默认 15 |
+1. 框架配置 `websearch_tavily_key` 只填当前在用的 1 个 Key
+2. 其余 Key 全部填进插件 `rotation_pool`
+3. 平时 `/tvquota` 看额度；额度用完时 `/tvrotate` 切下一个（或开启 `auto_rotate` 自动切）
+4. 框架配置更新即时生效，无需重启
 
 ## 额度数据口径
 
-- 接口：`GET https://api.tavily.com/usage`（Tavily 公开接口，只读，不消耗 Credits）
-- 注意：`/usage` 返回的数据可能存在刷新延迟（分钟级），以 Tavily Dashboard 为最终依据
-- 单个 Key 对应一个 Tavily 账户，`account.plan_usage/plan_limit` 即该账户套餐用量与上限
+- 接口：`GET https://api.tavily.com/usage`（公开只读接口，不消耗 Credits）
+- `/usage` 数据可能有分钟级刷新延迟，以 Tavily Dashboard 为最终依据
 
 ## Logs
 
